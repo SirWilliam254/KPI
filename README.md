@@ -12,7 +12,7 @@ KPIs better known as key performance indicators is a tool that measures the perf
 - Aid in tracking the progress of teams or individuals by holding each accountable.
 
 ## Live
-Sales Dashboard: https://
+Sales Dashboard: https://kpi-sales.herokuapp.com/
 
 ## Author
 William Mburu
