@@ -9,6 +9,7 @@ KPIs better known as key performance indicators is a tool that measures the perf
 - Aid in tracking the progress of teams or individuals by holding each accountable.
 # Some examples would be
 Customer, Marketing, sales, Financial and Operational KPIs
+
 # Types of KPI’s
 ## Leading indicators
 Leading indicators are factors that can assist in identifying long-term trends and perhaps forecasting successful future results.
