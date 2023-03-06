@@ -1,50 +1,42 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
 
-# Generate some example data
-np.random.seed(123)
-dates = pd.date_range('20220101', periods=1000)
-sales = np.random.normal(loc=100, scale=20, size=1000)
-revenue = sales * np.random.uniform(low=0.8, high=1.2, size=1000)
-costs = revenue * np.random.uniform(low=0.5, high=0.8, size=1000)
-profit = revenue - costs
+# Read in data
+data = pd.read_csv("sales_data.csv")
 
-# Combine the data into a DataFrame
-data = pd.DataFrame({'Date': dates, 'Sales': sales, 'Revenue': revenue, 'Costs': costs, 'Profit': profit})
+# Sidebar filters
+st.sidebar.title("Filters")
+location_filter = st.sidebar.selectbox("Select location", ["All"] + data["Origin Country"].unique().tolist())
+price_range_filter = st.sidebar.slider("Select price range", 100, 4000, (100, 4000), step=100)
+rating_filter = st.sidebar.slider("Select minimum rating", 1, 5, 1)
 
-# Create the Streamlit app
-st.title('Sales KPI Analysis')
-st.write('This app analyzes key performance indicators for a sales business.')
+# Filter data based on sidebar filters
+filtered_data = data[(data["Origin Country"] == location_filter) | (location_filter == "All")]
+filtered_data = filtered_data[(filtered_data["Sales Price"] >= price_range_filter[0]) & (filtered_data["Sales Price"] <= price_range_filter[1])]
+filtered_data = filtered_data[filtered_data["Rating"] >= rating_filter]
 
-# Show the raw data
-st.subheader('Raw Data')
-st.write(data)
+# Calculate KPIs
+total_sales = filtered_data["Sales"].sum()
+avg_sales = filtered_data["Sales"].mean()
+avg_rating = filtered_data["Rating"].mean()
+avg_sales_per_transaction = filtered_data.groupby("Transaction ID")["Sales"].sum().mean()
 
-# Show a line chart of sales over time
-st.subheader('Sales Over Time')
-fig, ax = plt.subplots()
-sns.lineplot(x='Date', y='Sales', data=data, ax=ax)
-ax.set(xlabel='Date', ylabel='Sales')
-st.pyplot(fig)
+# Monthly sales plot
+monthly_sales = filtered_data.groupby(pd.Grouper(key="Order Date", freq="M")).sum().reset_index()
+monthly_sales_fig = px.line(monthly_sales, x="Order Date", y="Sales", title="Monthly Sales")
+st.plotly_chart(monthly_sales_fig)
 
-# Show a bar chart of revenue and costs over time
-st.subheader('Revenue and Costs Over Time')
-fig, ax = plt.subplots()
-data_melt = pd.melt(data, id_vars='Date', value_vars=['Revenue', 'Costs'], var_name='Metric', value_name='Amount')
-sns.barplot(x='Date', y='Amount', hue='Metric', data=data_melt, ax=ax)
-ax.set(xlabel='Date', ylabel='Amount')
-st.pyplot(fig)
+# Yearly profit and ratings barcharts
+yearly_data = filtered_data.groupby(pd.Grouper(key="Order Date", freq="Y")).sum().reset_index()
+yearly_fig = px.bar(yearly_data, x="Order Date", y="Profit", title="Yearly Profit and Ratings")
+yearly_fig.add_trace(px.bar(yearly_data, x="Order Date", y="Rating", title="Yearly Profit and Ratings").data[0])
+yearly_fig.update_layout(barmode="group")
+st.plotly_chart(yearly_fig)
 
-# Show a scatterplot of profit vs. sales
-st.subheader('Profit vs. Sales')
-fig, ax = plt.subplots()
-sns.scatterplot(x='Sales', y='Profit', data=data, ax=ax)
-ax.set(xlabel='Sales', ylabel='Profit')
-st.pyplot(fig)
-
-# Calculate and show summary statistics
-st.subheader('Summary Statistics')
-st.write(data[['Sales', 'Revenue', 'Costs', 'Profit']].describe())
+# Display KPIs
+st.write(f"Total Sales: ${total_sales:.2f}")
+st.write(f"Average Sales: ${avg_sales:.2f}")
+st.write(f"Average Rating: {avg_rating:.2f}")
+st.write(f"Average Sales per Transaction: ${avg_sales_per_transaction:.2f}")
