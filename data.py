@@ -38,3 +38,13 @@ sales_data = generate_sales_data()
 
 # Save data to CSV file
 sales_data.to_csv('sales_data.csv', index=False)
+
+
+
+
+
+
+
+# Load data from GitHub CSV file
+url = 'https://raw.githubusercontent.com/USERNAME/REPOSITORY/BRANCH/PATH/TO/FILE.csv'
+df = pd.read_csv(url)
